@@ -1,4 +1,4 @@
-module neolog.xyz/makerss
+module git.sr.ht/~xordspar0/makerss
 
 go 1.16
 
