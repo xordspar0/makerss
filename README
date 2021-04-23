@@ -1,0 +1,10 @@
+Make an RSS feed out of arbitrary articles on the Internet.
+
+Input: a text file with one URL per line.
+Output: an RSS XML file.
+
+Example:
+
+	makerss -title "Articles to read later" \
+		-url "https://misc.neolog.xyz/feed.xml" \
+		-articles read-later.txt > feed.xml
