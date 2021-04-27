@@ -7,12 +7,12 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
 	"os"
 	"text/template"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/html"
 )
 
@@ -69,10 +69,16 @@ func main() {
 		for scanner.Scan() {
 			url := scanner.Text()
 			resp, err := http.Get(url)
-			check(err)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
 
 			doc, err := html.Parse(resp.Body)
-			check(err)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
 
 			feed.Articles = append(feed.Articles,
 				Article{
@@ -84,7 +90,7 @@ func main() {
 		check(scanner.Err())
 	} else {
 		if errors.Is(err, fs.ErrNotExist) {
-			log.Print("Warning: ", err)
+			log.Warn(err)
 		} else {
 			log.Fatal(err)
 		}
