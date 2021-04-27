@@ -3,8 +3,10 @@ package main
 import (
 	"bufio"
 	_ "embed"
+	"errors"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -62,26 +64,31 @@ func main() {
 		os.Exit(2)
 	}
 
-	input, err := os.Open(articlesFile)
-	check(err)
+	if input, err := os.Open(articlesFile); err == nil {
+		scanner := bufio.NewScanner(input)
+		for scanner.Scan() {
+			url := scanner.Text()
+			resp, err := http.Get(url)
+			check(err)
 
-	scanner := bufio.NewScanner(input)
-	for scanner.Scan() {
-		url := scanner.Text()
-		resp, err := http.Get(url)
-		check(err)
+			doc, err := html.Parse(resp.Body)
+			check(err)
 
-		doc, err := html.Parse(resp.Body)
-		check(err)
-
-		feed.Articles = append(feed.Articles,
-			Article{
-				URL:   url,
-				Title: getTitle(doc),
-			},
-		)
+			feed.Articles = append(feed.Articles,
+				Article{
+					URL:   url,
+					Title: getTitle(doc),
+				},
+			)
+		}
+		check(scanner.Err())
+	} else {
+		if errors.Is(err, fs.ErrNotExist) {
+			log.Print("Warning: ", err)
+		} else {
+			log.Fatal(err)
+		}
 	}
-	check(scanner.Err())
 
 	tmpl, err := template.New("rss").Parse(rssTemplate)
 	check(err)
