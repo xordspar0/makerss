@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
+	_ "embed"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -34,6 +34,9 @@ type HTMLDocument struct {
 }
 
 var articlesFile string
+
+//go:embed rss.xml.tmpl
+var rssTemplate string
 
 func main() {
 	feed := Feed{
@@ -80,13 +83,7 @@ func main() {
 	}
 	check(scanner.Err())
 
-	rssTemplateFile, err := os.Open("rss.xml.tmpl")
-	check(err)
-
-	rssTemplate, err := io.ReadAll(rssTemplateFile)
-	check(err)
-
-	tmpl, err := template.New("rss").Parse(string(rssTemplate))
+	tmpl, err := template.New("rss").Parse(rssTemplate)
 	check(err)
 
 	err = tmpl.Execute(os.Stdout, feed)
